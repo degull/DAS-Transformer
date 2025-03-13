@@ -1,6 +1,6 @@
 # 3/13
 
-import os
+""" import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -9,14 +9,6 @@ import torchvision.transforms as transforms
 
 class KADID10KDataset(Dataset):
     def __init__(self, csv_path, img_dir, transform=None):
-        """
-        KADID-10k 데이터셋을 로드하고, 왜곡을 6개 그룹으로 정리하는 클래스
-
-        Args:
-            csv_path (str): CSV 파일 경로
-            img_dir (str): 이미지 폴더 경로
-            transform (torchvision.transforms): 이미지 변환
-        """
         self.data = pd.read_csv(csv_path)
         self.img_dir = img_dir
         self.transform = transform
@@ -32,9 +24,7 @@ class KADID10KDataset(Dataset):
         }
 
     def get_distortion_group(self, dist_img):
-        """
-        ✅ 이미지 파일명에서 왜곡 그룹을 반환
-        """
+
         distortion_type = dist_img.split("_")[1]  # 예: 'I01_01_01.png' -> '01'
         for group, codes in self.distortion_groups.items():
             if distortion_type in codes:
@@ -45,9 +35,7 @@ class KADID10KDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        """
-        ✅ 데이터셋에서 하나의 샘플을 가져오는 메서드
-        """
+
         row = self.data.iloc[idx]
         dist_img_path = os.path.join(self.img_dir, row["dist_img"])
 
@@ -80,4 +68,53 @@ if __name__ == "__main__":
     # ✅ 샘플 데이터 확인
     dist_img, label = dataset[0]
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
-    print(f"✅ Distortion Label: {label}")
+    print(f"✅ Distortion Label: {label}") """
+
+
+# 3/14
+import os
+import pandas as pd
+import torch
+from torch.utils.data import Dataset
+from PIL import Image
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+import numpy as np
+
+class KADID10KDataset(Dataset):
+    def __init__(self, csv_path, img_dir, transform=None):
+        self.data = pd.read_csv(csv_path)
+        self.img_dir = img_dir
+        self.transform = transform
+
+        self.distortion_groups = {
+            "blur": ["01", "02"],
+            "noise": ["03", "04", "05"],
+            "compression": ["06", "07"],
+            "color": ["08", "09", "10"],
+            "contrast": ["11", "12"],
+            "other": ["13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"],
+        }
+
+    def get_distortion_group(self, dist_img):
+        distortion_type = dist_img.split("_")[1]
+        for group, codes in self.distortion_groups.items():
+            if distortion_type in codes:
+                return group
+        return "unknown"
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        row = self.data.iloc[idx]
+        dist_img_path = os.path.join(self.img_dir, row["dist_img"])
+        dist_img = Image.open(dist_img_path).convert("RGB")
+
+        if self.transform:
+            dist_img = self.transform(image=np.array(dist_img))["image"]
+
+        distortion_group = self.get_distortion_group(row["dist_img"])
+        label = list(self.distortion_groups.keys()).index(distortion_group)
+
+        return dist_img, label

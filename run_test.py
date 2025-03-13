@@ -1,4 +1,6 @@
-import torch
+# 3/13
+
+""" import torch
 import torchvision.transforms as transforms
 import numpy as np
 import seaborn as sns
@@ -70,3 +72,56 @@ if __name__ == '__main__':
     plt.ylabel("True Label")
     plt.title("Confusion Matrix of DAS-Transformer on KADID-10k")
     plt.show()
+ """
+
+# 3/14
+import torch
+from torch.utils.data import DataLoader
+from scipy.stats import spearmanr, pearsonr
+from dataset.dataset_kadid10k import KADID10KDataset
+from model.slide_transformer import SlideTransformer
+import numpy as np
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
+IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/DAS-Transformer_KADID10K.pth"
+
+BATCH_SIZE = 32
+NUM_CLASSES = 6
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+test_dataset = KADID10KDataset(CSV_PATH, IMG_DIR, transform=None)
+test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
+
+model = SlideTransformer(img_size=224, num_classes=NUM_CLASSES).to(DEVICE)
+model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+model.eval()
+
+true_labels = []
+pred_labels = []
+
+with torch.no_grad():
+    for dist_img, labels in test_loader:
+        dist_img, labels = dist_img.to(DEVICE), labels.to(DEVICE)
+        outputs = model(dist_img)
+        _, predicted = outputs.max(1)
+        true_labels.extend(labels.cpu().numpy())
+        pred_labels.extend(predicted.cpu().numpy())
+
+srcc, _ = spearmanr(true_labels, pred_labels)
+plcc, _ = pearsonr(true_labels, pred_labels)
+
+print(f"Test SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
+print("Classification Report:")
+print(classification_report(true_labels, pred_labels))
+
+# Confusion Matrix
+plt.figure(figsize=(8,6))
+sns.heatmap(confusion_matrix(true_labels, pred_labels), annot=True, fmt="d", cmap="Blues")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix")
+plt.show()
