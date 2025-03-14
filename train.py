@@ -82,76 +82,43 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import DataLoader
 from scipy.stats import spearmanr, pearsonr
 from dataset.dataset_kadid10k import KADID10KDataset
 from model.slide_transformer import SlideTransformer  
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-import numpy as np
 
-# 데이터 경로
+# ✅ 데이터 경로 설정
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
 
-# 하이퍼파라미터 설정
+# ✅ 하이퍼파라미터 설정
 BATCH_SIZE = 32
-NUM_EPOCHS = 30
+NUM_EPOCHS = 300
 LEARNING_RATE = 1e-4
-NUM_CLASSES = 6
+NUM_CLASSES = 6  # ✅ 왜곡 종류 분류 → 25개 클래스 (KADID-10k 기준)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ✅ float 변환을 위한 Custom Transform 클래스
-class ToFloatTransform:
-    def __call__(self, image, **kwargs):
-        return image.astype(np.float32) / 255.0  # 🔥 float32 변환 (0~1 정규화)
+# ✅ 데이터 전처리 (Normalization 추가)
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
 
-# ✅ Windows `multiprocessing` 문제 방지를 위해 추가
 if __name__ == '__main__':
-    # Albumentations 기반 데이터 변환 (🔥 Lambda 제거 → Custom Transform 적용)
-    train_transform = A.Compose([
-        A.Resize(224, 224),
-        A.RandomBrightnessContrast(p=0.3),
-        A.HorizontalFlip(p=0.5),
-        A.GaussNoise(p=0.2),
-        A.ToFloat(max_value=255),  # ✅ float 변환 (권장)
-        ToTensorV2()
-    ])
+    # ✅ 데이터 로딩
+    train_dataset = KADID10KDataset(CSV_PATH, IMG_DIR, transform=transform)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
-    # 데이터셋 로드
-    train_dataset = KADID10KDataset(CSV_PATH, IMG_DIR, transform=train_transform)
-
-    # 🔥 클래스 불균형 해결 - Weighted Sampling 적용
-    class_counts = [810, 1215, 810, 1215, 810, 5265]  
-    weights = 1.0 / torch.tensor(class_counts, dtype=torch.float)
-
-    sample_weights = [weights[label] for _, label in train_dataset]
-    sampler = WeightedRandomSampler(sample_weights, num_samples=len(sample_weights), replacement=True)
-
-    # ✅ Windows에서는 multiprocessing 문제를 피하기 위해 `num_workers=0`으로 설정
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, sampler=sampler, num_workers=0)
-
-    # 모델 로드
+    # ✅ 모델 초기화 (DAS-Transformer)
     model = SlideTransformer(img_size=224, num_classes=NUM_CLASSES).to(DEVICE)
 
-    # 🔥 Focal Loss 적용
-    class FocalLoss(nn.Module):
-        def __init__(self, alpha=1, gamma=2):
-            super(FocalLoss, self).__init__()
-            self.alpha = alpha
-            self.gamma = gamma
-
-        def forward(self, inputs, targets):
-            ce_loss = nn.CrossEntropyLoss()(inputs, targets)
-            pt = torch.exp(-ce_loss)
-            focal_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
-            return focal_loss.mean()
-
-    criterion = FocalLoss()
+    # ✅ 손실 함수 및 최적화 기법
+    criterion = nn.CrossEntropyLoss()  # ✅ 다중 분류이므로 CrossEntropyLoss 사용
     optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
-    # 학습 루프
+    # ✅ 학습 루프 시작
     for epoch in range(NUM_EPOCHS):
         model.train()
         total_loss = 0
@@ -163,8 +130,8 @@ if __name__ == '__main__':
         for batch_idx, (dist_img, labels) in enumerate(train_loader):
             dist_img, labels = dist_img.to(DEVICE), labels.to(DEVICE)
 
-            optimizer.zero_grad()
-            outputs = model(dist_img)
+            optimizer.zero_grad()  # ✅ 그래디언트 초기화
+            outputs = model(dist_img, mode="train")  # ✅ train 모드로 실행
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -180,15 +147,17 @@ if __name__ == '__main__':
             if (batch_idx + 1) % 10 == 0:
                 print(f"Epoch [{epoch+1}/{NUM_EPOCHS}], Step [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
 
+        # ✅ 스케줄러 업데이트
         scheduler.step()
         acc = 100. * correct / total
 
-        # SRCC, PLCC 계산
+        # ✅ SRCC, PLCC 계산
         srcc, _ = spearmanr(true_labels, pred_labels)
         plcc, _ = pearsonr(true_labels, pred_labels)
 
         print(f"Epoch {epoch+1} - Loss: {total_loss / len(train_loader):.4f}, Accuracy: {acc:.2f}%, SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
 
-    torch.save(model.state_dict(), "3_14_DAS-Transformer_KADID10K.pth")
-    print("🔥 DAS-Transformer 학습 완료 & 저장 완료! 🚀")
+    # ✅ 모델 저장
+    torch.save(model.state_dict(), "3_13_DAS-Transformer_KADID10K.pth")
+    print("🎯 DAS-Transformer 학습 완료 & 저장 완료!")
  """

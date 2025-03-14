@@ -1,4 +1,4 @@
-# 3/13
+# 3/13 & 3/14 수정된거 없음
 
 import os
 import pandas as pd
@@ -70,52 +70,4 @@ if __name__ == "__main__":
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
     print(f"✅ Distortion Label: {label}")
 
-
-# 3/14
-""" import os
-import pandas as pd
-import torch
-from torch.utils.data import Dataset
-from PIL import Image
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-import numpy as np
-
-class KADID10KDataset(Dataset):
-    def __init__(self, csv_path, img_dir, transform=None):
-        self.data = pd.read_csv(csv_path)
-        self.img_dir = img_dir
-        self.transform = transform
-
-        self.distortion_groups = {
-            "blur": ["01", "02"],
-            "noise": ["03", "04", "05"],
-            "compression": ["06", "07"],
-            "color": ["08", "09", "10"],
-            "contrast": ["11", "12"],
-            "other": ["13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"],
-        }
-
-    def get_distortion_group(self, dist_img):
-        distortion_type = dist_img.split("_")[1]
-        for group, codes in self.distortion_groups.items():
-            if distortion_type in codes:
-                return group
-        return "unknown"
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        row = self.data.iloc[idx]
-        dist_img_path = os.path.join(self.img_dir, row["dist_img"])
-        dist_img = Image.open(dist_img_path).convert("RGB")
-
-        if self.transform:
-            dist_img = self.transform(image=np.array(dist_img))["image"]
-
-        distortion_group = self.get_distortion_group(row["dist_img"])
-        label = list(self.distortion_groups.keys()).index(distortion_group)
-
-        return dist_img, label
- """
+# blur, noise, compression, color, contrast, other
