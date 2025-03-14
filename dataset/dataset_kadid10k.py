@@ -1,6 +1,6 @@
 # 3/13
 
-""" import os
+import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -68,11 +68,11 @@ if __name__ == "__main__":
     # ✅ 샘플 데이터 확인
     dist_img, label = dataset[0]
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
-    print(f"✅ Distortion Label: {label}") """
+    print(f"✅ Distortion Label: {label}")
 
 
 # 3/14
-import os
+""" import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -118,3 +118,4 @@ class KADID10KDataset(Dataset):
         label = list(self.distortion_groups.keys()).index(distortion_group)
 
         return dist_img, label
+ """

@@ -1,6 +1,6 @@
 # 3/13
 
-""" import sys
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -14,7 +14,7 @@ CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
 
 BATCH_SIZE = 32
-NUM_EPOCHS = 1
+NUM_EPOCHS = 300
 LEARNING_RATE = 1e-4
 NUM_CLASSES = 6
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -72,12 +72,12 @@ if __name__ == '__main__':
 
         print(f"Epoch {epoch+1} - Loss: {total_loss / len(train_loader):.4f}, Accuracy: {acc:.2f}%, SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
 
-    torch.save(model.state_dict(), "3/13_DAS-Transformer_KADID10K.pth")
+    torch.save(model.state_dict(), "3_13_DAS-Transformer_KADID10K.pth")
     print("DAS-Transformer 학습 완료 & 저장 완료!")
- """
+
 
 # 3/14
-import sys
+""" import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -96,7 +96,7 @@ IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
 
 # 하이퍼파라미터 설정
 BATCH_SIZE = 32
-NUM_EPOCHS = 1
+NUM_EPOCHS = 30
 LEARNING_RATE = 1e-4
 NUM_CLASSES = 6
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -189,5 +189,6 @@ if __name__ == '__main__':
 
         print(f"Epoch {epoch+1} - Loss: {total_loss / len(train_loader):.4f}, Accuracy: {acc:.2f}%, SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
 
-    torch.save(model.state_dict(), "3/14_DAS-Transformer_KADID10K.pth")
+    torch.save(model.state_dict(), "3_14_DAS-Transformer_KADID10K.pth")
     print("🔥 DAS-Transformer 학습 완료 & 저장 완료! 🚀")
+ """
