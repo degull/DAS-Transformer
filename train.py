@@ -1,5 +1,5 @@
 # 3/13
-
+""" 
 import sys
 import torch
 import torch.nn as nn
@@ -74,10 +74,10 @@ if __name__ == '__main__':
 
     torch.save(model.state_dict(), "3_13_DAS-Transformer_KADID10K.pth")
     print("DAS-Transformer 학습 완료 & 저장 완료!")
-
+ """
 
 # 3/14
-""" import sys
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -158,6 +158,5 @@ if __name__ == '__main__':
         print(f"Epoch {epoch+1} - Loss: {total_loss / len(train_loader):.4f}, Accuracy: {acc:.2f}%, SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
 
     # ✅ 모델 저장
-    torch.save(model.state_dict(), "3_13_DAS-Transformer_KADID10K.pth")
+    torch.save(model.state_dict(), "3_14_DAS-Transformer_KADID10K.pth")
     print("🎯 DAS-Transformer 학습 완료 & 저장 완료!")
- """

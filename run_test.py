@@ -1,6 +1,6 @@
 # 3/13
 
-import torch
+""" import torch
 import torchvision.transforms as transforms
 import numpy as np
 import seaborn as sns
@@ -14,7 +14,7 @@ from model.slide_transformer import SlideTransformer
 # ✅ 데이터 경로 설정
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/DAS-Transformer_KADID10K.pth"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/1_3_13_DAS-Transformer_KADID10K.pth"
 
 BATCH_SIZE = 32
 NUM_CLASSES = 6
@@ -71,11 +71,11 @@ if __name__ == '__main__':
     plt.xlabel("Predicted Label")
     plt.ylabel("True Label")
     plt.title("Confusion Matrix of DAS-Transformer on KADID-10k")
-    plt.show()
+    plt.show() """
 
 
 # 3/14
-""" import torch
+import torch
 import torchvision.transforms as transforms
 import numpy as np
 import seaborn as sns
@@ -89,7 +89,7 @@ from model.slide_transformer import SlideTransformer
 # ✅ 데이터 경로 설정
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/DAS-Transformer_KADID10K.pth"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/3_13_DAS-Transformer_KADID10K.pth"
 
 BATCH_SIZE = 32
 NUM_CLASSES = 6
@@ -147,4 +147,3 @@ if __name__ == '__main__':
     plt.ylabel("True Label")
     plt.title("Confusion Matrix of DAS-Transformer on KADID-10k (6-Class)")
     plt.show()
- """

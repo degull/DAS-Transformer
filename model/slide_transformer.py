@@ -96,7 +96,7 @@ if __name__ == "__main__":
     print("Output Shape:", output.shape) """
 
 # 3/14
-""" import torch
+import torch
 import torch.nn as nn
 from timm.layers import trunc_normal_
 
@@ -186,7 +186,11 @@ class SlideTransformer(nn.Module):
             nn.Linear(hidden_dim, embed_dim)
         )
 
-        self.global_transformer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, batch_first=True)
+        self.global_transformer = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, batch_first=True),
+            num_layers=4  # ✅ 4개 블록 사용
+        )
+
 
         self.head = nn.Linear(embed_dim, num_classes)
         self.apply(self._init_weights)
@@ -211,7 +215,8 @@ class SlideTransformer(nn.Module):
         x = x.flatten(2).transpose(1, 2)  # (B, N, C) 변환
         x = self.attn_layer(x)  # Slide Attention 적용
         x = self.mlp(x.mean(dim=1))  # MLP
-        x = self.global_transformer(x.unsqueeze(1)).squeeze(1)  # Global Transformer 적용
+        x = self.global_transformer(x)  # ✅ 여러 개의 Transformer 블록 통과
+  # Global Transformer 적용
 
         return self.head(x)
 
@@ -230,4 +235,4 @@ if __name__ == "__main__":
     print("Inference Output Shape:", output_infer.shape)
 
 
- """
+
