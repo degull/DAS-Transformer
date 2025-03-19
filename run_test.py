@@ -89,7 +89,7 @@ from model.slide_transformer import SlideTransformer
 # ✅ 데이터 경로 설정
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/3_13_DAS-Transformer_KADID10K.pth"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/3_14_DAS-Transformer_KADID10K.pth"
 
 BATCH_SIZE = 32
 NUM_CLASSES = 6

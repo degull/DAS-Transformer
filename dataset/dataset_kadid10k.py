@@ -71,3 +71,9 @@ if __name__ == "__main__":
     print(f"✅ Distortion Label: {label}")
 
 # blur, noise, compression, color, contrast, other
+
+""" xx_yy_zz.png:
+
+xx: 원본 이미지 ID
+yy: 왜곡 코드 (01~25)
+zz: 왜곡 레벨 (1~5) → 이번 프로젝트에서는 고려하지 않음 """
