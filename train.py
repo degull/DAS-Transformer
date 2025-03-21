@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
 
 # 3/17 (각 에포크별 pth 저장)
-import sys
+""" import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -182,7 +182,7 @@ IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
 
 # ✅ 하이퍼파라미터 설정
 BATCH_SIZE = 32
-NUM_EPOCHS = 300
+NUM_EPOCHS = 200
 LEARNING_RATE = 1e-4
 NUM_CLASSES = 6  # ✅ 왜곡 종류 분류 → 6개 그룹으로 설정
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -252,12 +252,12 @@ if __name__ == '__main__':
         print(f"💾 모델 저장 완료: {checkpoint_path}")
 
     # ✅ 최종 모델 저장
-    torch.save(model.state_dict(), "3_14_DAS-Transformer_KADID10K.pth")
-    print("🎯 DAS-Transformer 학습 완료 & 최종 모델 저장 완료!")
+    torch.save(model.state_dict(), "class=6_DAS-Transformer_KADID10K.pth")
+    print("🎯 DAS-Transformer 학습 완료 & 최종 모델 저장 완료!") """
 
 
-# 3/19 -> 왜곡 분류 세분화(class=8)
-""" import sys
+# 3/21 -> 왜곡 분류 세분화(class=7)
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -275,7 +275,7 @@ IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
 BATCH_SIZE = 32
 NUM_EPOCHS = 200
 LEARNING_RATE = 1e-4
-NUM_CLASSES = 8  # ✅ 기존 6개에서 8개 그룹으로 변경
+NUM_CLASSES = 7  # ✅ 7개 그룹으로 수정
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ✅ 데이터 전처리 (Normalization 추가)
@@ -340,12 +340,11 @@ if __name__ == '__main__':
         print(f"Epoch {epoch+1} - Loss: {total_loss / len(train_loader):.4f}, Accuracy: {acc:.2f}%, SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
 
         # ✅ 각 에포크마다 모델 저장
-        checkpoint_path = f"C:/Users/IIPL02/Desktop/NEW/checkpoints/DAS-Transformer_epoch_{epoch+1}.pth"
+        checkpoint_path = f"C:/Users/IIPL02/Desktop/NEW/checkpoints/7class_DAS-Transformer_epoch_{epoch+1}.pth"
         torch.save(model.state_dict(), checkpoint_path)
         print(f"💾 모델 저장 완료: {checkpoint_path}")
 
     # ✅ 최종 모델 저장
-    final_model_path = "C:/Users/IIPL02/Desktop/NEW/3_14_DAS-Transformer_KADID10K_8class.pth"
+    final_model_path = "C:/Users/IIPL02/Desktop/NEW/class=7_DAS-Transformer_KADID10K.pth"
     torch.save(model.state_dict(), final_model_path)
     print(f"🎯 DAS-Transformer 학습 완료 & 최종 모델 저장 완료! 경로: {final_model_path}")
- """

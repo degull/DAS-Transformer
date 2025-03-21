@@ -1,6 +1,6 @@
 # 3/13 & 3/14 수정된거 없음
-
-import os
+# class=6
+""" import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -68,14 +68,14 @@ if __name__ == "__main__":
     # ✅ 샘플 데이터 확인
     dist_img, label = dataset[0]
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
-    print(f"✅ Distortion Label: {label}")
+    print(f"✅ Distortion Label: {label}") """
 
 # blur, noise, compression, color, contrast, other
 
 
 
-# 3/19 -> 왜곡 분류 세분화(class=8)
-""" import os
+# 3/21 -> 왜곡 분류 세분화(# class=7)
+import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -88,24 +88,24 @@ class KADID10KDataset(Dataset):
         self.img_dir = img_dir
         self.transform = transform
 
-        # ✅ 25개 왜곡을 8개 그룹으로 정리
+        # ✅ 25개 왜곡을 7개 그룹으로 정리 (공식 문서 기준)
         self.distortion_groups = {
-            "blur": ["01", "02"],
-            "noise": ["03", "04", "05"],
-            "compression": ["06", "07"],
-            "color": ["08", "09", "10"],
-            "contrast": ["11", "12"],
-            "geometric": ["14", "17", "18", "24"],
-            "pixel_level": ["19", "20", "25"],
-            "structural": ["13", "15", "16", "21", "22", "23"]
+            "blur": ["01", "02", "03"],  # Gaussian Blur, Lens Blur, Motion Blur
+            "color_distortion": ["04", "05", "06", "07", "08"],  # Color 관련 왜곡
+            "compression": ["09", "10"],  # JPEG, JPEG2000
+            "noise": ["11", "12", "13", "14", "15"],  # White Noise, Impulse Noise, Denoise 등
+            "brightness_change": ["16", "17", "18"],  # 밝기 조정
+            "spatial_distortion": ["19", "20", "21", "22", "23"],  # Jitter, Pixelate 등
+            "sharpness_contrast": ["24", "25"],  # High Sharpen, Contrast Change
         }
 
     def get_distortion_group(self, dist_img):
-        distortion_type = dist_img.split("_")[1]  # 예: 'I01_01_01.png' -> '01'
+        """파일명에서 왜곡 코드 추출 후 그룹 반환"""
+        distortion_type = dist_img.split("_")[1]  # 예: 'I01_01_01.png' → '01'
         for group, codes in self.distortion_groups.items():
             if distortion_type in codes:
                 return group
-        return "unknown"
+        return "unknown"  # 알 수 없는 경우
 
     def __len__(self):
         return len(self.data)
@@ -123,7 +123,7 @@ class KADID10KDataset(Dataset):
 
         # ✅ 왜곡 그룹 라벨
         distortion_group = self.get_distortion_group(row["dist_img"])
-        label = list(self.distortion_groups.keys()).index(distortion_group)  # 정수 라벨로 변환
+        label = list(self.distortion_groups.keys()).index(distortion_group)  # 정수 라벨 변환
 
         return dist_img, label
 
@@ -141,10 +141,13 @@ if __name__ == "__main__":
     dataset = KADID10KDataset(csv_path, img_dir, transform=transform)
 
     # ✅ 샘플 데이터 확인
-    dist_img, label = dataset[0]
+    dist_img, label = dataset[100]
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
-    print(f"✅ Distortion Label: {label}")
- """
+    print(f"✅ Distortion Label (Group Index): {label}")
+    print(f"✅ Distortion Group: {list(dataset.distortion_groups.keys())[label]}")
+
+
+
 
 """ xx_yy_zz.png:
 
