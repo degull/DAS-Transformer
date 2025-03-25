@@ -36,5 +36,5 @@ def restore_image(img_path):
 
 # ✅ 테스트 실행
 #test_image_path = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images/I04_06_01.png"
-test_image_path = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images/I81_23_04.png"
+test_image_path = "C:/Users/IIPL02/Desktop/NEW/data/LIVE/jp2k/img13.bmp"
 restore_image(test_image_path)
