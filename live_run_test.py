@@ -10,8 +10,8 @@ from dataset.dataset_live import LIVEDistortionDataset
 from model.slide_transformer import SlideTransformer
 
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/LIVE/live_dmos_full.csv"
-IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/LIVE/images"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/LIVE_DAS_epoch_199.pth"
+IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/LIVE"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/live/LIVE_DAS_epoch_192.pth"
 
 BATCH_SIZE = 32
 NUM_CLASSES = 5
