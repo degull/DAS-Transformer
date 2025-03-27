@@ -13,7 +13,7 @@ from model.slide_transformer_ref import SlideTransformerRef
 # ✅ 설정 경로
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/LIVE/live_dmos_full.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/LIVE"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/live_ref/epoch_200.pth"  # 🔁 마지막 학습 모델 경로 사용
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/live_ref/epoch_189.pth"  # 🔁 마지막 학습 모델 경로 사용
 BATCH_SIZE = 32
 NUM_CLASSES = 5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -32,8 +32,9 @@ if __name__ == '__main__':
 
     # ✅ 모델 로드
     model = SlideTransformerRef(img_size=224, num_classes=NUM_CLASSES).to(DEVICE)
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE), strict=False)  # 수정됨
     model.eval()
+
 
     # ✅ 예측 및 정답 저장 리스트
     true_labels, pred_labels = [], []
