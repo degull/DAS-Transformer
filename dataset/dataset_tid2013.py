@@ -49,3 +49,10 @@ class TID2013Dataset(Dataset):
         label = list(self.distortion_groups.keys()).index(group)
 
         return dist_img, label
+
+"""
+IXX_YY_Z.BMP
+XX : 참조 이미지 번호 (1~25번까지 총 25개)
+YY : 왜곡 유형 번호 (1~24번)
+Z : 왜곡 강도 레벨 (1~5단계)
+"""
