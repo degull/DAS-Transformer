@@ -1,3 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
@@ -9,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import spearmanr, pearsonr
 
 ROOT_DIR = "C:/Users/IIPL02/Desktop/NEW/data/CSIQ"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/6class_DAS-Transformer_CSIQ_epoch_100.pth"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/csiq/6class_DAS-Transformer_CSIQ_epoch_191.pth"
 NUM_CLASSES = 6
 BATCH_SIZE = 32
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -27,7 +32,8 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
     model = SlideTransformer(img_size=224, num_classes=NUM_CLASSES).to(DEVICE)
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE), strict=False)
+
     model.eval()
 
     true_labels = []
