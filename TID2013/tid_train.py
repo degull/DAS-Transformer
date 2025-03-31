@@ -1,4 +1,9 @@
 # tid_train.py
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+sys.path.append("C:/Users/IIPL02/Desktop/NEW")  # ✅ 이거 반드시 포함
 
 import torch
 import torch.nn as nn
@@ -65,4 +70,4 @@ if __name__ == '__main__':
         plcc, _ = pearsonr(true_labels, pred_labels)
 
         print(f"Epoch {epoch+1} - Loss: {total_loss / len(train_loader):.4f}, Acc: {acc:.2f}%, SRCC: {srcc:.4f}, PLCC: {plcc:.4f}")
-        torch.save(model.state_dict(), f"C:/Users/IIPL02/Desktop/NEW/checkpoints/tid2013_epoch_{epoch+1}.pth")
+        torch.save(model.state_dict(), f"C:/Users/IIPL02/Desktop/NEW/checkpoints/tid/tid2013_epoch_{epoch+1}.pth")

@@ -1,4 +1,9 @@
 # tid_run_test.py
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+sys.path.append("C:/Users/IIPL02/Desktop/NEW")  # ✅ 이거 반드시 포함
 
 import torch
 import pandas as pd
