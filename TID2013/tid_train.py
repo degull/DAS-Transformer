@@ -14,7 +14,7 @@ from dataset.dataset_tid2013 import TID2013Dataset
 from model.slide_transformer import SlideTransformer
 from scipy.stats import spearmanr, pearsonr
 
-# 경로 설정
+# 경로 설정                                                        
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/TID2013/tid2013.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/TID2013/distorted_images"
 

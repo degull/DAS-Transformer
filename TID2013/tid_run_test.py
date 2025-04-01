@@ -18,7 +18,7 @@ from model.slide_transformer import SlideTransformer
 
 CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/TID2013/tid2013.csv"
 IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/TID2013/distorted_images"
-MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/tid2013_epoch_200.pth"
+MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/tid/tid2013_epoch_198.pth"
 
 NUM_CLASSES = 6
 BATCH_SIZE = 32
