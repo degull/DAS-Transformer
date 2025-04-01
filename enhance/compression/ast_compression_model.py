@@ -94,17 +94,17 @@ class ASTCompressionRestoration(nn.Module):
         self.deconv2 = nn.Conv2d(embed_dim, img_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
+        residual = x  # 🔸 입력 이미지 저장 (Residual connection용)
+
         x1 = F.relu(self.conv1(x))
         x1 = self.frfn1(x1)
 
         x2 = F.relu(self.conv2(x1))
         x2 = self.frfn2(x2)
 
-        # ✅ Bottleneck Transformer (ASSA 적용)
         x3 = self.assa1(x2)
         x3 = self.frfn3(x3)
 
-        # ✅ Decoder (ASSA 적용)
         x4 = self.assa2(x3)
         x4 = self.frfn4(x4)
 
@@ -112,7 +112,16 @@ class ASTCompressionRestoration(nn.Module):
         x5 = self.frfn5(x5)
 
         restored = self.deconv2(x5)
+
+        # 🔸 Residual 방식으로 입력 이미지 더함
+        restored = restored + x  # x는 입력 이미지
+
+        # 🔸 출력 범위를 clamp해서 색상 깨짐 방지
+        restored = torch.clamp(restored, 0.0, 1.0)
+
         return restored
+
+
 
 
 # ✅ 실행 테스트 코드 추가
