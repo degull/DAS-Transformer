@@ -47,5 +47,5 @@ def restore_image(img_path):
     plt.show()
 
 # ✅ 테스트 실행
-test_image_path = "C:/Users/IIPL02/Desktop/NEW/data/LIVE/jp2k/img13.bmp"
+test_image_path = "C:/Users/IIPL02/Desktop/NEW/data/LIVE/jpeg/img16.bmp"
 restore_image(test_image_path)
