@@ -96,8 +96,12 @@ def run_kadid_collab_deblurring(csv_path, img_dir):
     df = pd.read_csv(csv_path)
     blur_codes = ['01', '02', '03']
     transform = transforms.ToTensor()
+    
     model = CollaborativeUNet().eval()
+    model.load_state_dict(torch.load("C:/Users/IIPL02/Desktop/NEW/KADID_enhance/blur/collaborate_model/weights/collab_unet_blur_ref.pth", map_location="cpu"))  # ✅ 가중치 불러오기
+    
     count = 0
+
 
     for _, row in df.iterrows():
         filename = row['dist_img']
