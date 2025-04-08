@@ -1,6 +1,6 @@
 # KADID-10k에서 Compression (JPEG / JPEG2000) 이미지만 로드하는 데이터셋 정의
 # compression_dataloader.py
-from torch.utils.data import Dataset, DataLoader
+""" from torch.utils.data import Dataset, DataLoader
 import os
 import pandas as pd
 from PIL import Image
@@ -64,4 +64,80 @@ if __name__ == "__main__":
         if batch_idx == 2:  # 3개 배치까지만 확인
             break
 
+    print("✅ 데이터 로드 테스트 완료!")
+ """
+
+# 브랜치 추가
+# compression_dataloader.py
+from torch.utils.data import Dataset, DataLoader
+import os
+import pandas as pd
+from PIL import Image
+import torchvision.transforms as transforms
+
+class CompressionDataset(Dataset):
+    def __init__(self, csv_path, img_dir, transform=None):
+        self.data = pd.read_csv(csv_path)
+        self.img_dir = img_dir
+        self.transform = transform
+
+        # ✅ JPEG (class 10), JPEG2000 (class 9)만 필터링
+        self.data = self.data[
+            self.data["dist_img"].str.contains("_09_") | self.data["dist_img"].str.contains("_10_")
+        ]
+        print(f"✅ 데이터셋 로드 완료! 총 {len(self.data)}개의 JPEG/JPEG2000 이미지 포함.")
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        row = self.data.iloc[idx]
+        img_path = os.path.join(self.img_dir, row["dist_img"])
+        ref_path = os.path.join(self.img_dir, row["ref_img"])
+
+        # ✅ distortion class 추출 (파일명에서 "_09_" 또는 "_10_" 확인)
+        if "_09_" in row["dist_img"]:
+            distortion_class = 9  # JPEG2000
+        elif "_10_" in row["dist_img"]:
+            distortion_class = 10  # JPEG
+        else:
+            distortion_class = -1  # 예외 처리 (사용되지 않음)
+
+        img = Image.open(img_path).convert("RGB")
+        ref = Image.open(ref_path).convert("RGB")
+
+        if self.transform:
+            img = self.transform(img)
+            ref = self.transform(ref)
+
+        return img, ref, distortion_class
+
+
+# ✅ 데이터셋 로드 함수
+def get_compression_dataloader(csv_path, img_dir, batch_size=16, img_size=256):
+    transform = transforms.Compose([
+        transforms.Resize((img_size, img_size)),
+        transforms.ToTensor(),
+    ])
+
+    dataset = CompressionDataset(csv_path, img_dir, transform=transform)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+
+# ✅ 테스트 코드
+if __name__ == "__main__":
+    # 테스트용 경로 (수정해서 사용)
+    CSV_PATH = "E:/ARNIQA/ARNIQA/dataset/KADID10K/kadid10k.csv"
+    IMG_DIR = "E:/ARNIQA/ARNIQA/dataset/KADID10K/images"
+
+    dataloader = get_compression_dataloader(CSV_PATH, IMG_DIR, batch_size=4)
+
+    print("✅ 데이터 로드 테스트 시작!")
+    for batch_idx, (img, ref, cls) in enumerate(dataloader):
+        print(f"🔹 배치 {batch_idx + 1}:")
+        print(f" - 압축 이미지 크기: {img.shape}")
+        print(f" - 원본 이미지 크기: {ref.shape}")
+        print(f" - distortion 클래스: {cls}")
+        if batch_idx == 2:  # 3개 배치만 확인
+            break
     print("✅ 데이터 로드 테스트 완료!")

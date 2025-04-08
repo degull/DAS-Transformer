@@ -72,6 +72,7 @@ print(f"✅ 모델 저장 완료: {model_save_path}")
 
 # VGG 기반 Perceptual Loss + MSE Loss 추가 O
 # train_compression.py
+# train_compression.py
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -80,7 +81,7 @@ from compression_dataloader import get_compression_dataloader
 from torchvision.models import vgg16
 import time
 
-# ✅ Perceptual Loss 정의 (VGG 기반)
+# ✅ VGG 기반 Perceptual Loss 정의
 class VGGPerceptualLoss(nn.Module):
     def __init__(self):
         super(VGGPerceptualLoss, self).__init__()
@@ -107,7 +108,7 @@ print("🔹 데이터 로드 중...")
 dataloader = get_compression_dataloader(csv_path, img_dir, batch_size=4)
 print(f"✅ 데이터셋 로드 완료! 총 {len(dataloader.dataset)}개의 JPEG/JPEG2000 이미지 포함.")
 
-# ✅ 3. 모델 초기화
+# ✅ 3. 모델 및 손실 함수 초기화
 print("🔹 모델 초기화 중...")
 model = ASTCompressionRestoration().to(device)
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
@@ -116,7 +117,7 @@ perc_loss = VGGPerceptualLoss().to(device)
 print("✅ 모델 초기화 완료.")
 
 # ✅ 4. 학습 루프
-num_epochs = 50
+num_epochs = 1
 print(f"🔹 {num_epochs} Epoch 동안 학습을 시작합니다...")
 
 start_time = time.time()
@@ -128,25 +129,31 @@ for epoch in range(num_epochs):
 
     print(f"\n🚀 Epoch [{epoch+1}/{num_epochs}] 시작...")
 
-    for batch_idx, (img, ref) in enumerate(dataloader):
+    for batch_idx, (img, ref, distortion_class) in enumerate(dataloader):
         batch_start = time.time()
 
-        img, ref = img.to(device), ref.to(device)
+        img = img.to(device)
+        ref = ref.to(device)
+        distortion_class = distortion_class.to(device)  # 그대로 유지 (배치 전체)
 
         optimizer.zero_grad()
-        restored = model(img)
 
-        # ✅ Perceptual + MSE Loss
+        # ✅ class_id를 배치 단위로 모델에 넘김
+        restored = model(img, class_id=distortion_class)
+
+        # ✅ 손실 계산
         loss_mse = mse_loss(restored, ref)
         loss_perc = perc_loss(restored, ref)
-        loss = loss_mse + 0.1 * loss_perc  # perceptual 가중치는 조절 가능
+        loss = loss_mse + 0.1 * loss_perc
 
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
         batch_time = time.time() - batch_start
+
         print(f"   🟢 Batch {batch_idx+1}/{len(dataloader)} 완료 (Loss: {loss.item():.6f}, Time: {batch_time:.3f}s)")
+
 
     epoch_time = time.time() - epoch_start
     avg_loss = total_loss / len(dataloader)
