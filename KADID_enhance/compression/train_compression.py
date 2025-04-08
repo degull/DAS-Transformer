@@ -117,7 +117,7 @@ perc_loss = VGGPerceptualLoss().to(device)
 print("✅ 모델 초기화 완료.")
 
 # ✅ 4. 학습 루프
-num_epochs = 1
+num_epochs = 50
 print(f"🔹 {num_epochs} Epoch 동안 학습을 시작합니다...")
 
 start_time = time.time()
@@ -144,7 +144,7 @@ for epoch in range(num_epochs):
         # ✅ 손실 계산
         loss_mse = mse_loss(restored, ref)
         loss_perc = perc_loss(restored, ref)
-        loss = loss_mse + 0.1 * loss_perc
+        loss = loss_mse + 0.2 * loss_perc
 
         loss.backward()
         optimizer.step()
