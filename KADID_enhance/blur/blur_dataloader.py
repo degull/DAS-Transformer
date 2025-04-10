@@ -46,16 +46,15 @@ class BlurDataset(Dataset):
 
         return dist_img, ref_img, class_id
 
-
 # ✅ DataLoader 생성 함수
 def get_blur_dataloader(csv_path, img_dir, batch_size=16, img_size=256):
     transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
+        transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # ✅ [-1, 1] 범위
     ])
     dataset = BlurDataset(csv_path, img_dir, transform=transform)
     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
 
 # ✅ 테스트 실행 코드
 if __name__ == "__main__":
@@ -73,3 +72,5 @@ if __name__ == "__main__":
         if idx == 2:  # 테스트용 3개 배치만
             break
     print("✅ DataLoader 테스트 완료!")
+
+
