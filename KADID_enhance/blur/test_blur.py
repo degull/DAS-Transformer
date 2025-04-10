@@ -86,3 +86,72 @@ if __name__ == "__main__":
  """
 
 # (각 블러마다 encoder + decoder 전부 별도)
+# test_blur.py
+import torch
+import torch.nn as nn
+from torchvision import transforms
+from blur_dataloader import get_blur_dataloader
+from models.collaborate_blur_model import BlurBranchRestorationModel
+
+import lpips
+from pytorch_msssim import ssim
+from torchvision.utils import save_image
+import os
+import math
+
+# 평가 지표: PSNR 계산 함수
+def calculate_psnr(img1, img2):
+    mse = torch.mean((img1 - img2) ** 2)
+    if mse == 0:
+        return float('inf')
+    return 20 * torch.log10(1.0 / torch.sqrt(mse))
+
+# 저장 폴더
+os.makedirs("results", exist_ok=True)
+
+def test():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = BlurBranchRestorationModel().to(device)
+    model.load_state_dict(torch.load("first_collaborate_blur_model.pth", map_location=device))
+    model.eval()
+
+    lpips_loss = lpips.LPIPS(net='alex').to(device)
+    lpips_loss.eval()
+
+    dataloader = get_blur_dataloader(
+        csv_path="E:/ARNIQA/ARNIQA/dataset/KADID10K/kadid10k.csv",
+        img_dir="E:/ARNIQA/ARNIQA/dataset/KADID10K/images",
+        batch_size=1,
+        img_size=256
+    )
+
+    total_psnr, total_ssim, total_lpips = 0, 0, 0
+    with torch.no_grad():
+        for idx, (dist_img, ref_img, cls) in enumerate(dataloader):
+            dist_img, ref_img, cls = dist_img.to(device), ref_img.to(device), cls.to(device)
+
+            restored = model(dist_img, class_id=cls)
+
+            # 📌 지표 계산
+            psnr_val = calculate_psnr(restored, ref_img)
+            ssim_val = ssim(restored, ref_img, data_range=1.0, size_average=True).item()
+            lpips_val = lpips_loss(restored, ref_img).mean().item()
+
+            total_psnr += psnr_val
+            total_ssim += ssim_val
+            total_lpips += lpips_val
+
+            # 🔽 샘플 저장 (선택적으로)
+            if idx < 5:
+                save_image(dist_img, f"results/{idx}_input.png")
+                save_image(ref_img, f"results/{idx}_gt.png")
+                save_image(restored, f"results/{idx}_restored.png")
+
+    N = len(dataloader)
+    print("\n✅ [Test Results]")
+    print(f"📈 Avg PSNR:  {total_psnr / N:.4f}")
+    print(f"📈 Avg SSIM:  {total_ssim / N:.4f}")
+    print(f"📉 Avg LPIPS: {total_lpips / N:.4f}")
+
+if __name__ == "__main__":
+    test()

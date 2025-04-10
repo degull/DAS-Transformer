@@ -4,16 +4,15 @@ import torch.nn as nn
 
 # ✅ 블러별 개별 모델 import
 from .gaussian_unet import GaussianUNet
-from .lens_model import LensDeblurUNet
+from .lens_model import LensDeblur
 from .motion_diffusion import MotionDeblurDiffusionModel
-
 
 class BlurBranchRestorationModel(nn.Module):
     def __init__(self):
         super().__init__()
         # ✅ 각 블러 타입에 해당하는 복원 모델 초기화
         self.gaussian_model = GaussianUNet()
-        self.lens_model = LensDeblurUNet()
+        self.lens_model = LensDeblur()
         self.motion_model = MotionDeblurDiffusionModel()
 
     def forward(self, x, class_id=None):

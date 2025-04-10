@@ -78,7 +78,7 @@ from pytorch_msssim import ssim  # pip install pytorch-msssim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
 # ✅ 학습 설정
-EPOCHS = 2
+EPOCHS = 50
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-4
 IMG_SIZE = 256

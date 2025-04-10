@@ -149,7 +149,7 @@ if __name__ == "__main__":
  """
 # 브랜치 추가
 
-import torch
+""" import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -316,37 +316,63 @@ if __name__ == "__main__":
     print("\n[TEST] 일반 (class_id=None)")
     out_default = model(input_tensor)
     print("🔸 기본 출력 크기:", out_default.shape)
+ """
 
-# jpeg multi add
-""" import torch
+
+# jpeg -> JPEGArtifacts Reduction
+
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# ✅ Multi-Scale Dilated Convolution Block (DCSC 스타일)
-class MultiScaleDilatedConv(nn.Module):
-    def __init__(self, channels):
-        super(MultiScaleDilatedConv, self).__init__()
-        self.dilate1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1, dilation=1)
-        self.dilate2 = nn.Conv2d(channels, channels, kernel_size=3, padding=2, dilation=2)
-        self.dilate4 = nn.Conv2d(channels, channels, kernel_size=3, padding=4, dilation=4)
-        self.merge = nn.Conv2d(channels * 3, channels, kernel_size=1)
+# ✅ DCSC 블록: Dilated Convolution + Convolutional LISTA 구조
+class DCSCBlock(nn.Module):
+    def __init__(self, in_channels=64, num_layers=3, num_feats=64):
+        super(DCSCBlock, self).__init__()
+        # Multi-scale dilated convolutions
+        self.dilate1 = nn.Conv2d(in_channels, num_feats, kernel_size=3, padding=1, dilation=1)
+        self.dilate2 = nn.Conv2d(in_channels, num_feats, kernel_size=3, padding=2, dilation=2)
+        self.dilate3 = nn.Conv2d(in_channels, num_feats, kernel_size=3, padding=4, dilation=4)
+        self.merge = nn.Conv2d(num_feats * 3, num_feats, kernel_size=1)
+
+        # Iterative LISTA (approximated)
+        self.iter_list = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv2d(num_feats, num_feats, kernel_size=3, padding=1),
+                nn.ReLU(inplace=True)
+            )
+            for _ in range(num_layers)
+        ])
+
+        # Final residual reconstruction
+        self.reconstruct = nn.Conv2d(num_feats, in_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
-        out1 = self.dilate1(x)
-        out2 = self.dilate2(x)
-        out3 = self.dilate4(x)
-        out = torch.cat([out1, out2, out3], dim=1)
-        out = self.merge(out)
-        return out
+        # Step 1: multi-scale feature extraction
+        f1 = self.dilate1(x)
+        f2 = self.dilate2(x)
+        f3 = self.dilate3(x)
+        features = torch.cat([f1, f2, f3], dim=1)
+        features = self.merge(features)
 
-# ✅ Feature Refinement Feed-forward Network (FRFN)
+        # Step 2: convolutional LISTA iterations
+        z = features
+        for layer in self.iter_list:
+            z = layer(z)
+
+        # Step 3: residual prediction
+        residual = self.reconstruct(z)
+        return x + residual
+
+
+# ✅ 기타 구성 요소 (FRFN, ASSA 등은 이전과 동일)
 class FRFN(nn.Module):
     def __init__(self, channels):
         super(FRFN, self).__init__()
         self.norm = nn.LayerNorm(channels)
-        self.pconv = nn.Conv2d(channels, channels, kernel_size=1)
+        self.pconv = nn.Conv2d(channels, channels, 1)
         self.linear1 = nn.Linear(channels, channels)
-        self.dwconv = nn.Conv2d(channels // 2, channels // 2, kernel_size=3, padding=1, groups=channels // 2)
+        self.dwconv = nn.Conv2d(channels // 2, channels // 2, 3, padding=1, groups=channels // 2)
         self.linear2 = nn.Linear(channels, channels)
 
     def forward(self, x):
@@ -363,9 +389,9 @@ class FRFN(nn.Module):
         x = self.linear2(x.view(B, H * W, C)).view(B, H, W, C)
         return x.permute(0, 3, 1, 2) + residual
 
-# ✅ Adaptive Sparse Self-Attention (ASSA)
+
 class ASSA(nn.Module):
-    def __init__(self, dim, num_heads=8):
+    def __init__(self, dim):
         super(ASSA, self).__init__()
         self.norm = nn.LayerNorm(dim)
         self.q_proj = nn.Linear(dim, dim, bias=False)
@@ -389,27 +415,15 @@ class ASSA(nn.Module):
         output = (attn @ V).transpose(1, 2).view(B, C, H, W)
         return output + x
 
-# ✅ Edge-Aware Block (JPEG 전용)
-class EdgeAwareBlock(nn.Module):
-    def __init__(self, channels):
-        super(EdgeAwareBlock, self).__init__()
-        self.dilated = nn.Conv2d(channels, channels, kernel_size=3, padding=2, dilation=2)
-        self.edge_conv = nn.Conv2d(channels, channels, kernel_size=1)
 
-    def forward(self, x):
-        edge_feat = self.dilated(x)
-        edge_map = torch.sigmoid(self.edge_conv(edge_feat))
-        return x + edge_feat * edge_map
-
-# ✅ Texture Refiner (JPEG2000 전용)
 class TextureRefiner(nn.Module):
     def __init__(self, channels):
         super(TextureRefiner, self).__init__()
         self.non_local = nn.Conv2d(channels, channels, 1)
         self.refine = nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+            nn.Conv2d(channels, channels, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(channels, channels, kernel_size=3, padding=1)
+            nn.Conv2d(channels, channels, 3, padding=1)
         )
 
     def forward(self, x):
@@ -417,7 +431,8 @@ class TextureRefiner(nn.Module):
         texture = self.refine(x)
         return x + attn * texture
 
-# ✅ AST Compression Restoration Model
+
+# ✅ 최종 모델
 class ASTCompressionRestoration(nn.Module):
     def __init__(self, img_channels=3, embed_dim=64):
         super(ASTCompressionRestoration, self).__init__()
@@ -432,20 +447,14 @@ class ASTCompressionRestoration(nn.Module):
         self.deconv1 = nn.ConvTranspose2d(embed_dim * 2, embed_dim, 3, stride=2, padding=1, output_padding=1)
         self.frfn5 = FRFN(embed_dim)
 
-        # ✅ JPEG 분기: DCSC 스타일 + Edge-aware 결합
         self.jpeg_branch = nn.Sequential(
-            MultiScaleDilatedConv(embed_dim),
-            EdgeAwareBlock(embed_dim),
+            DCSCBlock(embed_dim, num_layers=4),
             nn.Conv2d(embed_dim, img_channels, 3, padding=1)
         )
-
-        # ✅ JPEG2000 분기: 텍스처 복원 중심
         self.jpeg2000_branch = nn.Sequential(
             TextureRefiner(embed_dim),
             nn.Conv2d(embed_dim, img_channels, 3, padding=1)
         )
-
-        # ✅ 기본 분기
         self.default_branch = nn.Conv2d(embed_dim, img_channels, 3, padding=1)
 
     def forward(self, x, class_id=None):
@@ -460,48 +469,42 @@ class ASTCompressionRestoration(nn.Module):
         x5 = F.relu(self.deconv1(x4))
         x5 = self.frfn5(x5)
 
-        # class_id 분기 처리
         if class_id is not None:
             outputs = []
             if isinstance(class_id, int):
                 class_id = torch.tensor([class_id] * x.size(0), device=x.device)
             for i in range(x.size(0)):
                 if class_id[i] == 10:
-                    print("📌 JPEG 경계+아티팩트 복원 브랜치 적용")
+                    print("📌 JPEG (DCSC) 복원 브랜치 적용")
                     out = self.jpeg_branch(x5[i].unsqueeze(0))
                 elif class_id[i] == 9:
                     print("📌 JPEG2000 텍스처 복원 브랜치 적용")
                     out = self.jpeg2000_branch(x5[i].unsqueeze(0))
                 else:
-                    print("⚠️ Unknown class_id, 일반 복원 사용")
+                    print("⚠️ Unknown class_id, 기본 복원 사용")
                     out = self.default_branch(x5[i].unsqueeze(0))
                 outputs.append(out)
             restored = torch.cat(outputs, dim=0)
         else:
-            print("⚠️ class_id 미제공. 일반 복원 브랜치 사용.")
+            print("⚠️ class_id 없음. 기본 복원 브랜치 사용.")
             restored = self.default_branch(x5)
 
-        restored = restored + x
-        restored = torch.clamp(restored, 0.0, 1.0)
-        return restored
+        return torch.clamp(restored + x, 0.0, 1.0)
 
-# ✅ 실행 테스트 코드
+
+# ✅ 테스트 실행
 if __name__ == "__main__":
-    print("🔹 ASTCompressionRestoration 모델 테스트 중...\n")
-
     model = ASTCompressionRestoration()
     model.eval()
-    input_tensor = torch.randn(1, 3, 256, 256)
-
-    print("[TEST] JPEG (class_id=10)")
-    out_jpeg = model(input_tensor, class_id=10)
-    print("🔸 JPEG 출력 크기:", out_jpeg.shape)
+    sample = torch.randn(1, 3, 256, 256)
+    print("\n[TEST] JPEG (class_id=10)")
+    out1 = model(sample, class_id=10)
+    print("🔸 출력:", out1.shape)
 
     print("\n[TEST] JPEG2000 (class_id=9)")
-    out_jpeg2000 = model(input_tensor, class_id=9)
-    print("🔸 JPEG2000 출력 크기:", out_jpeg2000.shape)
+    out2 = model(sample, class_id=9)
+    print("🔸 출력:", out2.shape)
 
-    print("\n[TEST] 일반 (class_id=None)")
-    out_default = model(input_tensor)
-    print("🔸 기본 출력 크기:", out_default.shape)
- """
+    print("\n[TEST] Default")
+    out3 = model(sample)
+    print("🔸 출력:", out3.shape)

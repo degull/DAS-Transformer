@@ -72,7 +72,7 @@ print(f"✅ 모델 저장 완료: {model_save_path}")
 
 # VGG 기반 Perceptual Loss + MSE Loss 추가 O
 # train_compression.py
-import torch
+""" import torch
 import torch.nn as nn
 import torch.optim as optim
 from ast_compression_model import ASTCompressionRestoration
@@ -164,11 +164,11 @@ print(f"\n✅ 모든 Epoch 학습 완료! 총 소요 시간: {total_time:.2f}s")
 # ✅ 5. 모델 저장
 model_save_path = "compression_restoration_with_perceptual.pth"
 torch.save(model.state_dict(), model_save_path)
-print(f"✅ 모델 저장 완료: {model_save_path}")
+print(f"✅ 모델 저장 완료: {model_save_path}") """
 
 
 # train_compression.py
-""" 
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -218,7 +218,7 @@ checkpoint_dir = "checkpoints"
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 # ✅ 4. 학습 루프
-num_epochs = 50
+num_epochs = 2
 print(f"🔹 {num_epochs} Epoch 동안 학습을 시작합니다...")
 
 start_time = time.time()
@@ -266,4 +266,3 @@ for epoch in range(num_epochs):
 
 total_time = time.time() - start_time
 print(f"\n✅ 모든 Epoch 학습 완료! 총 소요 시간: {total_time:.2f}s")
- """
