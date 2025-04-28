@@ -90,3 +90,5 @@ if __name__ == '__main__':
     final_model_path = "C:/Users/IIPL02/Desktop/NEW/class=7_DAS-Transformer_KADID10K.pth"
     torch.save(model.state_dict(), final_model_path)
     print(f"🎯 DAS-Transformer 학습 완료 & 최종 모델 저장 완료! 경로: {final_model_path}")
+
+

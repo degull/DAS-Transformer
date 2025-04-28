@@ -1,5 +1,5 @@
 # 왜곡 분류 세분화(# class=7)
-import os
+""" import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -24,7 +24,6 @@ class KADID10KDataset(Dataset):
         }
 
     def get_distortion_group(self, dist_img):
-        """파일명에서 왜곡 코드 추출 후 그룹 반환"""
         distortion_type = dist_img.split("_")[1]  # 예: 'I01_01_01.png' → '01'
         for group, codes in self.distortion_groups.items():
             if distortion_type in codes:
@@ -69,7 +68,7 @@ if __name__ == "__main__":
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
     print(f"✅ Distortion Label (Group Index): {label}")
     print(f"✅ Distortion Group: {list(dataset.distortion_groups.keys())[label]}")
-
+ """
 
 
 
@@ -80,7 +79,7 @@ yy: 왜곡 코드 (01~25)
 zz: 왜곡 레벨 (1~5) → 이번 프로젝트에서는 고려하지 않음 """
 
 # ref 제외
-import os
+""" import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -108,7 +107,6 @@ class KADID10KDataset(Dataset):
         }
 
     def get_distortion_group(self, dist_img):
-        """파일명에서 왜곡 코드 추출 후 그룹 반환"""
         distortion_type = dist_img.split("_")[1]  # 예: 'I01_01_01.png' → '01'
         for group, codes in self.distortion_groups.items():
             if distortion_type in codes:
@@ -152,3 +150,74 @@ if __name__ == "__main__":
     print(f"✅ Distorted Image Shape: {dist_img.shape}")
     print(f"✅ Distortion Label (Group Index): {label}")
     print(f"✅ Distortion Group: {list(dataset.distortion_groups.keys())[label]}")
+ """
+
+# # 왜곡 분류 세분화(# class=25)
+import os
+import pandas as pd
+import torch
+from torch.utils.data import Dataset
+from PIL import Image
+import torchvision.transforms as transforms
+
+class KADID10KDataset(Dataset):
+    def __init__(self, csv_path, img_dir, transform=None):
+        """
+        Args:
+            csv_path (str): CSV 파일 경로
+            img_dir (str): 왜곡 이미지 폴더 경로
+            transform (callable, optional): 이미지 변환 함수
+        """
+        self.data = pd.read_csv(csv_path)
+        self.img_dir = img_dir
+        self.transform = transform
+
+        # ✅ ref 이미지는 제외: dist_img 컬럼에서 '_' 문자가 포함된 행만 유지
+        self.data = self.data[self.data['dist_img'].str.contains("_")].reset_index(drop=True)
+
+    def get_distortion_index(self, dist_img_name):
+        """
+        파일명에서 왜곡 코드(01~25)를 추출하고 0~24로 변환
+        예: I01_14_03.png → '14' → 13
+        """
+        distortion_code = dist_img_name.split("_")[1]  # '14'
+        return int(distortion_code) - 1
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        row = self.data.iloc[idx]
+        dist_img_name = row['dist_img']
+        dist_img_path = os.path.join(self.img_dir, dist_img_name)
+
+        # ✅ 이미지 로드
+        image = Image.open(dist_img_path).convert("RGB")
+
+        # ✅ 변환 적용
+        if self.transform:
+            image = self.transform(image)
+
+        # ✅ 라벨 추출 (0~24)
+        label = self.get_distortion_index(dist_img_name)
+
+        return image, label
+
+
+# ✅ 테스트 코드
+if __name__ == "__main__":
+    csv_path = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
+    img_dir = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
+
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+    ])
+
+    dataset = KADID10KDataset(csv_path, img_dir, transform=transform)
+
+    # ✅ 샘플 출력
+    img, label = dataset[0]
+    print(f"✅ 이미지 텐서 크기: {img.shape}")
+    print(f"✅ 라벨 (0~24): {label}")
