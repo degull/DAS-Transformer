@@ -58,7 +58,7 @@ transform = transforms.Compose([
 ])
 
 # ✅ 테스트할 이미지 경로
-test_img_path = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images/I81_23_04.png"  # <- 여기에 테스트할 이미지 넣기
+test_img_path = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images/I81_11_04.png"  # <- 여기에 테스트할 이미지 넣기
 
 # ✅ 단일 이미지 로드 및 예측
 def predict_image(img_path):
