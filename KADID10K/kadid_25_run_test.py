@@ -32,7 +32,7 @@ def main():
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     CSV_PATH = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/kadid10k.csv"
     IMG_DIR = "C:/Users/IIPL02/Desktop/NEW/data/KADID10K/images"
-    MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/class_25_kadid/final_DAS-Transformer_KADID10K.pth"
+    MODEL_PATH = "C:/Users/IIPL02/Desktop/NEW/checkpoints/class_25_kadid/epoch_197.pth"
     BATCH_SIZE = 64
 
     # ✅ 모델 로드
