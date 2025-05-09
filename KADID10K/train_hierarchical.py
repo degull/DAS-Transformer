@@ -1,4 +1,3 @@
-
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -69,12 +68,10 @@ class HierarchicalClassifier(nn.Module):
         coarse_logits = self.coarse_head(x, mode)
         coarse_preds = torch.argmax(coarse_logits, dim=1)
         fine_logits_batch = []
-
         for i in range(x.size(0)):
             c = coarse_preds[i].item()
             fine_logits = self.fine_heads[c](x[i].unsqueeze(0), mode)
             fine_logits_batch.append(fine_logits)
-
         fine_logits = torch.cat(fine_logits_batch, dim=0)
         return coarse_logits, fine_logits, coarse_preds
 
@@ -94,13 +91,15 @@ def train():
         correct_coarse = 0
         correct_fine = 0
 
+        print(f"\n📣 [Epoch {epoch+1}/{NUM_EPOCHS}] Start training...")
+
         for batch_idx, (imgs, fine_labels) in enumerate(dataloader):
             imgs, fine_labels = imgs.to(DEVICE), fine_labels.to(DEVICE)
             coarse_labels = torch.tensor([get_coarse_label(l.item()) for l in fine_labels], device=DEVICE)
             fine_local_labels = torch.tensor([get_fine_local_label(l.item()) for l in fine_labels], device=DEVICE)
 
             optimizer.zero_grad()
-            coarse_logits, fine_logits, _ = model(imgs, mode="train")
+            coarse_logits, fine_logits, coarse_preds = model(imgs, mode="train")
             loss = criterion(coarse_logits, coarse_labels) + criterion(fine_logits, fine_local_labels)
             loss.backward()
             optimizer.step()
@@ -110,9 +109,13 @@ def train():
             correct_fine += (fine_logits.argmax(1) == fine_local_labels).sum().item()
             total += fine_labels.size(0)
 
+            # ✅ 배치 단위 출력
+            print(f"[Batch {batch_idx+1}/{len(dataloader)}] Loss: {loss.item():.4f} | "
+                  f"Coarse Acc: {correct_coarse/total:.4f} | Fine Acc: {correct_fine/total:.4f}")
+
         scheduler.step()
-        print(f"[Epoch {epoch+1}/{NUM_EPOCHS}] Loss: {total_loss:.4f} | "
-              f"Coarse Acc: {correct_coarse/total:.4f} | Fine Acc: {correct_fine/total:.4f}")
+        print(f"\n✅ [Epoch {epoch+1}] Total Loss: {total_loss:.4f} | "
+              f"Final Coarse Acc: {correct_coarse/total:.4f} | Final Fine Acc: {correct_fine/total:.4f}")
 
         torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, f"epoch_{epoch+1}.pth"))
 
